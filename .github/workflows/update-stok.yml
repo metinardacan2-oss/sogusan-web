@@ -2,8 +2,8 @@ name: Stok Verisi Güncelleyici
 
 on:
   schedule:
-    - cron: '*/15 * * * *'
-  workflow_dispatch:
+    - cron: '*/15 * * * *' # Her 15 dakikada bir otomatik çalışır
+  workflow_dispatch: # Manuel çalıştırma butonu
 
 permissions:
   contents: write
@@ -16,20 +16,16 @@ jobs:
         uses: actions/checkout@v4.2.2
 
       - name: Python Paketini Kur ve Veriyi İndir
-        env:
-          GAS_URL: ${{ secrets.GAS_API_URL }}
         run: |
           python3 -m pip install --upgrade requests
           python3 -c "
-          import requests, os, sys
-          url = os.environ.get('GAS_URL', '').strip()
-          if not url.startswith('http'):
-              print(f'HATA: Gelen URL geçersiz! Alınan değer: {url}')
-              sys.exit(1)
+          import requests
+          url = 'https://script.google.com/macros/s/AKfycbxYEwhzKzDaZVzCYaJYuU9hbz_Zlo8_JKyntw4qUwf61P15A0DcLXp4xElRHw0MOKQ/exec'
           response = requests.get(url, allow_redirects=True, timeout=30)
           response.raise_for_status()
           with open('stok-data.json', 'wb') as f:
               f.write(response.content)
+          print('Stok verisi başarıyla indirildi.')
           "
 
       - name: Değişiklik Varsa Kaydet ve Push Et
