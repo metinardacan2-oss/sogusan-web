@@ -2,8 +2,8 @@ name: Stok Verisi Güncelleyici
 
 on:
   schedule:
-    - cron: '*/15 * * * *' # Her 15 dakikada bir otomatik çalışır
-  workflow_dispatch: # Manuel çalıştırma butonu ekler
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -19,11 +19,18 @@ jobs:
         env:
           GAS_URL: ${{ secrets.GAS_API_URL }}
         run: |
-          curl -L "$GAS_URL" -o stok-data.json
+          curl -s -L -k --retry 3 "${GAS_URL}" -o stok-data.json
+          
+      - name: JSON Dosyası Kontrolü
+        run: |
+          if [ ! -s stok-data.json ]; then
+            echo "Stok verisi boş geldi!"
+            exit 1
+          fi
 
       - name: Değişiklik Varsa Kaydet ve Push Et
         run: |
-          git config --global user.name "Stok Botu"
-          git config --global user.email "bot@sogusansogutma.com"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add stok-data.json
           git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update stok-data.json [skip ci]" && git push)
