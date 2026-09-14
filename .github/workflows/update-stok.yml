@@ -21,8 +21,11 @@ jobs:
         run: |
           python3 -m pip install --upgrade requests
           python3 -c "
-          import requests, os
-          url = os.environ['GAS_URL']
+          import requests, os, sys
+          url = os.environ.get('GAS_URL', '').strip()
+          if not url.startswith('http'):
+              print(f'HATA: Gelen URL geçersiz! Alınan değer: {url}')
+              sys.exit(1)
           response = requests.get(url, allow_redirects=True, timeout=30)
           response.raise_for_status()
           with open('stok-data.json', 'wb') as f:
