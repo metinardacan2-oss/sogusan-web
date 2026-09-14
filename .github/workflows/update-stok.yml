@@ -15,18 +15,17 @@ jobs:
       - name: Kodu Klonla
         uses: actions/checkout@v4
 
-      - name: Google Sheet Verisini Çek ve JSON Kaydet
+      - name: Python Kur ve Veriyi İndir
         env:
           GAS_URL: ${{ secrets.GAS_API_URL }}
         run: |
-          curl -s -L -k --retry 3 "${GAS_URL}" -o stok-data.json
-          
-      - name: JSON Dosyası Kontrolü
-        run: |
-          if [ ! -s stok-data.json ]; then
-            echo "Stok verisi boş geldi!"
-            exit 1
-          fi
+          python3 -c "
+          import urllib.request, os
+          url = os.environ['GAS_URL']
+          req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+          with urllib.request.urlopen(req) as response, open('stok-data.json', 'wb') as out_file:
+              out_file.write(response.read())
+          "
 
       - name: Değişiklik Varsa Kaydet ve Push Et
         run: |
